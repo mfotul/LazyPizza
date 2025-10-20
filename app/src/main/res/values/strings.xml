@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Lazy Pizza</string>
+    <string name="lazypizza">LazyPizza</string>
+    <string name="phone_number">+1 (555) 321–7890</string>
+    <string name="pizza_image">Pizza image</string>
+    <string name="search_placeholder">Search for delicious food…</string>
+    <string name="pizza">Pizza</string>
+    <string name="drinks">Drinks</string>
+    <string name="sauces">Sauces</string>
+    <string name="icecream">Ice Cream</string>
+    <string name="extra_toppings">Extra Toppings</string>
+    <string name="delete">Delete</string>
+    <string name="increment">Increment amount</string>
+    <string name="add_to_cart">Add to Cart</string>
+    <string name="no_results_found_for_your_query">No results found for your query</string>
+    <string name="add_extra_toppings">ADD EXTRA TOPPINGS</string>
+    <string name="add_to_cart_for">Add to Cart for %s</string>
+</resources>
