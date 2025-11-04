@@ -5,27 +5,34 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.lazypizza.app.navigation.NavigationRoute
-import com.example.lazypizza.lazypizza.data.pizza.toOtherProductUi
 import com.example.lazypizza.lazypizza.data.pizza.toPizzaUi
+import com.example.lazypizza.lazypizza.data.pizza.toProductUi
 import com.example.lazypizza.lazypizza.domain.pizza.DataSource
 import com.example.lazypizza.lazypizza.domain.pizza.Product
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class DetailViewModel(
     private val savedStateHandle: SavedStateHandle,
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
+    private val applicationScope: CoroutineScope
 ) : ViewModel() {
     var hasLoadedInitialData: Boolean = false
 
     private val detailRoute: NavigationRoute.Detail = savedStateHandle.toRoute()
     private val id = detailRoute.id
+
+    private val eventChannel = Channel<DetailEvent>()
+    val events = eventChannel.receiveAsFlow()
 
     private val _state = MutableStateFlow(DetailState())
     val state = _state
@@ -46,25 +53,52 @@ class DetailViewModel(
             is DetailAction.OnNavigateBack -> {}
             is DetailAction.OnIncrementClick -> incrementAmount(action.id)
             is DetailAction.OnDecrementClick -> decrementAmount(action.id)
+            is DetailAction.OnAddToCartClick -> addToCart()
         }
     }
 
-    private fun incrementAmount(id: Int) {
+    private fun addToCart() {
+        viewModelScope.launch {
+            state.value.pizzaUi?.let { pizzaUi ->
+                val product = dataSource
+                    .getProduct(pizzaUi.id).firstOrNull()
+                    ?.let { it as? Product.Pizza }
+                    ?: return@launch
+                val ingredients = state.value.extraToppings
+                    .filter { it.amount > 0 }
+                    .map { "${it.amount} x ${it.name}" }
+                val pizza = product.copy(
+                    amount = 1,
+                    price = state.value.price,
+                    ingredients = ingredients
+                )
+                dataSource.addPizzaToCart(pizza)
+                applicationScope.launch {
+                    state.value.extraToppings
+                        .filter { it.amount > 0 }
+                        .forEach {
+                            dataSource.updateProductAmount(it.id, 0)
+                        }
+                }
+                eventChannel.send(DetailEvent.OnItemAddedToCart)
+            }
+        }
+    }
+
+    private fun incrementAmount(id: String) {
         viewModelScope.launch {
             val product = dataSource.getProduct(id).firstOrNull() ?: return@launch
-            val other = product as? Product.OtherProduct ?: return@launch
-            if (other.amount < 3) {
+            if (product.amount < 3) {
                 val amount = product.amount + 1
                 dataSource.updateProductAmount(id, amount)
             }
         }
     }
 
-    private fun decrementAmount(id: Int) {
+    private fun decrementAmount(id: String) {
         viewModelScope.launch {
             val product = dataSource.getProduct(id).firstOrNull() ?: return@launch
-            val other = product as? Product.OtherProduct ?: return@launch
-            if (other.amount > 0) {
+            if (product.amount > 0) {
                 val amount = product.amount - 1
                 dataSource.updateProductAmount(id, amount)
             }
@@ -73,7 +107,7 @@ class DetailViewModel(
 
     private fun loadInitialData() {
         viewModelScope.launch {
-            dataSource.loadImagesUrl()
+            dataSource.loadInitialData()
             val pizza = dataSource.getProduct(id).firstOrNull() as? Product.Pizza ?: return@launch
             _state.update { currentState ->
                 val pizzaUi = pizza.toPizzaUi()
@@ -89,7 +123,7 @@ class DetailViewModel(
                             it.price * it.amount
                         }
                         currentState.copy(
-                            extraToppings = extraToppings.map { topping -> topping.toOtherProductUi() },
+                            extraToppings = extraToppings.map { topping -> topping.toProductUi() },
                             price = price
                         )
                     }

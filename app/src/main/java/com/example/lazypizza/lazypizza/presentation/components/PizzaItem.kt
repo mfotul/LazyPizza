@@ -1,4 +1,4 @@
-package com.example.lazypizza.lazypizza.presentation.list.components
+package com.example.lazypizza.lazypizza.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,14 +28,13 @@ import com.example.lazypizza.core.presentation.theme.ExtraTypography
 import com.example.lazypizza.core.presentation.theme.LazyPizzaTheme
 import com.example.lazypizza.core.presentation.theme.textPrimary
 import com.example.lazypizza.core.presentation.theme.textSecondary
-import com.example.lazypizza.lazypizza.presentation.list.ListAction
 import com.example.lazypizza.lazypizza.presentation.models.PizzaUi
 import com.example.lazypizza.lazypizza.presentation.preview.PreviewModel
 
 @Composable
-fun ListPizzaItem(
+fun PizzaItem(
     pizzaUi: PizzaUi,
-    onAction: (ListAction) -> Unit,
+    onClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -58,7 +57,7 @@ fun ListPizzaItem(
                 shape = RoundedCornerShape(12.dp)
             )
             .clickable {
-                onAction(ListAction.NavigateToDetail(pizzaUi.id))
+                onClick(pizzaUi.id)
             }
     ) {
         Row(
@@ -108,7 +107,7 @@ fun ListPizzaItemPreview() {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            ListPizzaItem(
+            PizzaItem(
                 PreviewModel.pizza, {}
             )
         }

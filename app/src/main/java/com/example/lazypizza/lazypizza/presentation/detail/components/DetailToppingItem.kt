@@ -26,12 +26,12 @@ import com.example.lazypizza.core.presentation.theme.textPrimary
 import com.example.lazypizza.core.presentation.theme.textSecondary
 import com.example.lazypizza.lazypizza.presentation.components.AmountStepper
 import com.example.lazypizza.lazypizza.presentation.detail.DetailAction
-import com.example.lazypizza.lazypizza.presentation.models.OtherProductUi
+import com.example.lazypizza.lazypizza.presentation.models.ProductUi
 import com.example.lazypizza.lazypizza.presentation.preview.PreviewModel
 
 @Composable
 fun DetailToppingItem(
-    extraTopping: OtherProductUi,
+    extraTopping: ProductUi,
     onAction: (DetailAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -97,7 +97,7 @@ fun DetailToppingItem(
 fun DetailToppingItemPreview() {
     LazyPizzaTheme {
         DetailToppingItem(
-            extraTopping = PreviewModel.otherProduct.copy(amount = 0),
+            extraTopping = PreviewModel.otherProduct.copy(amount = 1),
             onAction = {}
         )
     }

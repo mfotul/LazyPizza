@@ -55,11 +55,13 @@ dependencies {
 
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlin.serialization.json)
+//    implementation(libs.kotlinx.coroutines.play.services)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.storage)
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.appcheck.debug)
+    implementation(libs.firebase.firestore)
 
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)

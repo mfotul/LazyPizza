@@ -1,8 +1,8 @@
 package com.example.lazypizza.lazypizza.data.pizza
 
 import com.example.lazypizza.lazypizza.domain.pizza.Product
-import com.example.lazypizza.lazypizza.presentation.models.OtherProductUi
 import com.example.lazypizza.lazypizza.presentation.models.PizzaUi
+import com.example.lazypizza.lazypizza.presentation.models.ProductUi
 
 fun Product.Pizza.toPizzaUi(): PizzaUi {
     return PizzaUi(
@@ -16,14 +16,14 @@ fun Product.Pizza.toPizzaUi(): PizzaUi {
     )
 }
 
-fun Product.OtherProduct.toOtherProductUi(): OtherProductUi {
-    return OtherProductUi(
+fun Product.toProductUi(): ProductUi {
+    return ProductUi(
         id = id,
         name = name,
         price = price,
         amount = amount,
         imagePath = imagePath,
         imageUrl = imageUrl,
-        category = category,
+        category = category
     )
 }

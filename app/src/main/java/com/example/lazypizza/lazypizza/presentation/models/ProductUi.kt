@@ -3,8 +3,8 @@ package com.example.lazypizza.lazypizza.presentation.models
 import com.example.lazypizza.lazypizza.domain.pizza.Category
 import com.example.lazypizza.lazypizza.presentation.util.toPrice
 
-data class OtherProductUi(
-    val id: Int,
+data class ProductUi(
+    val id: String,
     val name: String,
     val price: Double,
     val amount: Int,
@@ -15,3 +15,4 @@ data class OtherProductUi(
     val formattedPrice = price.toPrice()
     val formattedTotalPrice = (price * amount).toPrice()
 }
+

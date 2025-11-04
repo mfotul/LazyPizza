@@ -4,11 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.add
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -20,10 +17,10 @@ import com.example.lazypizza.R
 import com.example.lazypizza.core.presentation.theme.ExtraTypography
 import com.example.lazypizza.core.presentation.theme.textSecondary
 import com.example.lazypizza.lazypizza.presentation.detail.DetailAction
-import com.example.lazypizza.lazypizza.presentation.models.OtherProductUi
+import com.example.lazypizza.lazypizza.presentation.models.ProductUi
 
 fun LazyListScope.detailToppings(
-    extraToppings: List<OtherProductUi>,
+    extraToppings: List<ProductUi>,
     onAction: (DetailAction) -> Unit,
 ) {
     item {
@@ -58,8 +55,6 @@ fun LazyListScope.detailToppings(
 
     }
     item {
-        Spacer(modifier = Modifier.windowInsetsBottomHeight(
-            WindowInsets.systemBars.add(WindowInsets(bottom = 60.dp)))
-        )
+        Spacer(modifier = Modifier.height(48.dp))
     }
 }

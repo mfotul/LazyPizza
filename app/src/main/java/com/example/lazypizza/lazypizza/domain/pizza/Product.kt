@@ -1,54 +1,40 @@
 package com.example.lazypizza.lazypizza.domain.pizza
 
 sealed class Product {
+    abstract val id: String
+    abstract val name: String
+    abstract val price: Double
+    abstract val imagePath: String
+    abstract val imageUrl: String?
+    abstract val category: Category
+    abstract val amount: Int
+    abstract val productType: String
+    abstract val createdAt: Long
+
     data class Pizza(
-        val id: Int,
-        val name: String,
-        val shortDescription: String,
-        val longDescription: String,
-        val price: Double,
-        val imagePath: String,
-        val imageUrl: String?,
-        val category: Category
+        override val id: String = "",
+        override val name: String = "",
+        override val price: Double = 0.0,
+        override val imagePath: String = "",
+        override val imageUrl: String? = null,
+        override val category: Category = Category.PIZZA,
+        override val amount: Int = 0,
+        val shortDescription: String = "",
+        val longDescription: String = "",
+        val ingredients: List<String> = emptyList(),
+        override val productType: String = "",
+        override val createdAt: Long = 0
     ) : Product()
 
     data class OtherProduct(
-        val id: Int,
-        val name: String,
-        val price: Double,
-        val amount: Int,
-        val imagePath: String,
-        val imageUrl: String?,
-        val category: Category
+        override val id: String = "",
+        override val name: String = "",
+        override val price: Double = 0.0,
+        override val imagePath: String = "",
+        override val imageUrl: String? = null,
+        override val category: Category = Category.DRINK,
+        override val amount: Int = 0,
+        override val productType: String = "",
+        override val createdAt: Long = 0
     ) : Product()
 }
-
-val Product.category: Category
-    get() = when (this) {
-        is Product.Pizza -> this.category
-        is Product.OtherProduct -> this.category
-    }
-
-val Product.name: String
-    get() = when (this) {
-        is Product.Pizza -> this.name
-        is Product.OtherProduct -> this.name
-    }
-
-val Product.id: Int
-    get() = when (this) {
-        is Product.Pizza -> this.id
-        is Product.OtherProduct -> this.id
-    }
-
-val Product.imagePath: String
-    get() = when (this) {
-        is Product.Pizza -> this.imagePath
-        is Product.OtherProduct -> this.imagePath
-    }
-
-val Product.imageUrl: String?
-    get() = when (this) {
-        is Product.Pizza -> this.imageUrl
-        is Product.OtherProduct -> this.imageUrl
-    }
