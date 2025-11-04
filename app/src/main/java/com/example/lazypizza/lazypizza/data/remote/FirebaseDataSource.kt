@@ -1,6 +1,5 @@
 package com.example.lazypizza.lazypizza.data.remote
 
-import com.example.lazypizza.lazypizza.data.pizza.localDataSource
 import com.example.lazypizza.lazypizza.data.remote.dto.ProductDto
 import com.example.lazypizza.lazypizza.domain.pizza.DataSource
 import com.example.lazypizza.lazypizza.domain.pizza.Product
@@ -95,7 +94,7 @@ class FirebaseDataSource : DataSource {
             }
             db.collection("cart")
                 .document(product.id)
-                .set(newProduct)
+                .set(newProduct.toDto())
                 .await()
         } ?: return null
         return product
@@ -103,7 +102,7 @@ class FirebaseDataSource : DataSource {
 
     override suspend fun addPizzaToCart(product: Product) {
         val productRef = db.collection("cart")
-            .add(product)
+            .add(product.toDto())
             .await() ?: return
         productRef.update("id", productRef.id).await()
     }
@@ -130,7 +129,7 @@ class FirebaseDataSource : DataSource {
             product?.let { product ->
                 db.collection("cart")
                     .document(product.id)
-                    .set(product)
+                    .set(product.toDto())
                     .await()
             }
         }
