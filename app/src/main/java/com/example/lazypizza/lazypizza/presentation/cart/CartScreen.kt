@@ -23,7 +23,7 @@ fun CartScreenRoot(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val hapticFeedback = LocalHapticFeedback.current
 
-    ObserveAsEvents(viewModel.event) {
+    ObserveAsEvents(viewModel.events) {
         when (it) {
             is CartEvent.OnAddItemToCart -> hapticFeedback.performHapticFeedback(HapticFeedbackType.Confirm)
         }

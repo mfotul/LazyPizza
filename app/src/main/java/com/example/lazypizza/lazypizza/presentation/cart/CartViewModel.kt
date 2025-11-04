@@ -24,8 +24,8 @@ class CartViewModel(
     private val _extraToppings = dataSource.getExtraToppings()
     private var _state = MutableStateFlow(CartState())
 
-    private var _eventChannel = Channel<CartEvent>()
-    val event = _eventChannel.receiveAsFlow()
+    private var eventChannel = Channel<CartEvent>()
+    val events = eventChannel.receiveAsFlow()
 
     val state =
         combine(_state, _cart, _products, _extraToppings) { state, cart, products, extraToppings ->
@@ -58,7 +58,7 @@ class CartViewModel(
         viewModelScope.launch {
             dataSource.addToCart(id)
             dataSource.updateProductAmount(id, 1)
-            _eventChannel.send(CartEvent.OnAddItemToCart)
+            eventChannel.send(CartEvent.OnAddItemToCart)
         }
     }
 
@@ -90,6 +90,7 @@ class CartViewModel(
             dataSource.updateCartProductAmount(id, newAmount)
             if (product is Product.OtherProduct)
                 dataSource.updateProductAmount(id, newAmount)
+            eventChannel.send(CartEvent.OnAddItemToCart)
         }
     }
 }

@@ -28,8 +28,8 @@ class ListViewModel(
     private val _products = _search.flatMapLatest { search ->
         dataSource.getProducts(search)
     }
-    private var _eventChannel = Channel<ListEvent>()
-    val event = _eventChannel.receiveAsFlow()
+    private var eventChannel = Channel<ListEvent>()
+    val events = eventChannel.receiveAsFlow()
 
     private var _state = MutableStateFlow(ListState())
     val state = combine(_products, _search, _state) { products, search, state ->
@@ -79,7 +79,7 @@ class ListViewModel(
             val newAmount = product.amount + 1
             dataSource.updateProductAmount(id, newAmount)
             dataSource.updateCartProductAmount(id, newAmount)
-            _eventChannel.send(ListEvent.OnItemAddedToCart)
+            eventChannel.send(ListEvent.OnItemAddedToCart)
         }
     }
 

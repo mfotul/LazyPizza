@@ -65,7 +65,7 @@ fun ListScreenRoot(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val hapticFeedback = LocalHapticFeedback.current
 
-    ObserveAsEvents(viewModel.event) {
+    ObserveAsEvents(viewModel.events) {
         when (it) {
             is ListEvent.OnItemAddedToCart -> hapticFeedback.performHapticFeedback(
                 HapticFeedbackType.Confirm
