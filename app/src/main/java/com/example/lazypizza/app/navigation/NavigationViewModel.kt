@@ -13,7 +13,7 @@ class NavigationViewModel(
 
     val state = dataSource.getCartItems()
         .map { cartItems ->
-            NavigationState(cartItemCount = cartItems.sumOf { it.amount }.takeIf { it > 0 })
+            NavigationState(cartItemsCount = cartItems.sumOf { it.amount }.takeIf { it > 0 })
         }
         .stateIn(
             scope = viewModelScope,

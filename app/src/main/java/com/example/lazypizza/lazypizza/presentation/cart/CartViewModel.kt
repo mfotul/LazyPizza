@@ -10,8 +10,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 
@@ -19,30 +23,48 @@ class CartViewModel(
     private val dataSource: DataSource
 ) : ViewModel() {
 
-    private val _cart = dataSource.getCartItems()
-    private val _products = dataSource.getProducts()
-    private val _extraToppings = dataSource.getExtraToppings()
+    private var hasLoadedInitialData = false
+    private val cart = dataSource.getCartItems()
+    private var _recommendedProducts = MutableStateFlow(emptyList<Product>())
     private var _state = MutableStateFlow(CartState())
 
     private var eventChannel = Channel<CartEvent>()
     val events = eventChannel.receiveAsFlow()
 
     val state =
-        combine(_state, _cart, _products, _extraToppings) { state, cart, products, extraToppings ->
+        combine(_state, _recommendedProducts, cart) { state, recommendedProducts, cart ->
             val cartProductIds = cart.map { it.id }.toSet()
-            val recommendedProducts = (products.filter { it.category == Category.DRINK } + extraToppings)
-                .filter { it.id !in cartProductIds }
-                .shuffled()
+            val filteredRecommendedProducts =
+                recommendedProducts.filter { it.id !in cartProductIds }
             state.copy(
                 products = cart,
-                recommendedProducts = recommendedProducts,
+                recommendedProducts = filteredRecommendedProducts,
                 totalPrice = cart.sumOf { it.price * it.amount }
             )
+        }.onStart {
+            if (!hasLoadedInitialData)
+                loadInitialData()
+            hasLoadedInitialData = true
         }.stateIn(
             viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = CartState()
         )
+
+    private fun loadInitialData() {
+        viewModelScope.launch {
+            combine(
+                dataSource.getProducts()
+                .map { products -> products.filter { it.category == Category.DRINK } },
+                dataSource.getExtraToppings()
+            ) { drinks, extraToppings ->
+                drinks + extraToppings
+            }.take(1)
+                .collect { recommendedProducts ->
+                    _recommendedProducts.update { recommendedProducts.shuffled() }
+                }
+        }
+    }
 
     fun onAction(action: CartAction) {
         when (action) {

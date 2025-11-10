@@ -8,15 +8,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,6 +42,7 @@ import com.example.lazypizza.lazypizza.domain.pizza.Category
 import com.example.lazypizza.lazypizza.presentation.detail.components.DetailCheckoutBar
 import com.example.lazypizza.lazypizza.presentation.detail.components.DetailImage
 import com.example.lazypizza.lazypizza.presentation.detail.components.DetailNameDescription
+import com.example.lazypizza.lazypizza.presentation.detail.components.DetailTopBar
 import com.example.lazypizza.lazypizza.presentation.detail.components.detailToppings
 import com.example.lazypizza.lazypizza.presentation.models.PizzaUi
 import com.example.lazypizza.lazypizza.presentation.models.ProductUi
@@ -97,65 +101,131 @@ fun DetailScreen(
 
     val isExpanded = windowWidthSizeClass == WindowWidthSizeClass.Expanded
 
-    Box(
+    Scaffold(
+        topBar = {
+            DetailTopBar(
+                navigateBack = { onAction(DetailAction.OnNavigateBack) },
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets.safeContent,
         modifier = modifier
-            .fillMaxSize()
-    ) {
-        if (isExpanded)
-            Row {
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxSize()
-                ) {
-                    DetailImage(
-                        imageUrl = imageUrl,
-                        description = pizzaUi.name,
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            if (isExpanded)
+                Row {
+                    Column(
                         modifier = Modifier
-                            .height(240.dp)
-                            .fillMaxWidth()
-                    )
-                    DetailNameDescription(
-                        name = pizzaUi.name,
-                        description = pizzaUi.longDescription,
+                            .weight(1f)
+                            .fillMaxSize()
+                    ) {
+                        DetailImage(
+                            imageUrl = imageUrl,
+                            description = pizzaUi.name,
+                            modifier = Modifier
+                                .height(240.dp)
+                                .fillMaxWidth()
+                        )
+                        DetailNameDescription(
+                            name = pizzaUi.name,
+                            description = pizzaUi.longDescription,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                        )
+                    }
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                    )
+                            .weight(1f)
+                            .fillMaxSize()
+                    ) {
+                        LazyColumn(
+                            state = lazyListState,
+                            contentPadding = PaddingValues(
+                                vertical = 16.dp,
+                            ),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .dropShadow(
+                                    shape = RoundedCornerShape(
+                                        topStart = 16.dp,
+                                        bottomStart = 16.dp
+                                    ),
+                                    shadow = Shadow(
+                                        radius = 16.dp,
+                                        spread = 0.dp,
+                                        color = MaterialTheme.colorScheme.primary.copy(
+                                            alpha = 0.04f
+                                        ),
+                                        offset = DpOffset(0.dp, 4.dp)
+                                    )
+                                )
+                                .background(MaterialTheme.colorScheme.surface)
+                        ) {
+                            detailToppings(
+                                extraToppings = extraToppings,
+                                onAction = onAction
+                            )
+                        }
+                        DetailCheckoutBar(
+                            price = formatedPrice,
+                            onClick = { onAction(DetailAction.OnAddToCartClick) },
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 16.dp)
+                        )
+                    }
                 }
+            else {
                 Box(
                     modifier = Modifier
-                        .weight(1f)
                         .fillMaxSize()
                 ) {
                     LazyColumn(
                         state = lazyListState,
-                        contentPadding = PaddingValues(
-                            vertical = 16.dp,
-                        ),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier
                             .fillMaxSize()
-                            .dropShadow(
-                                shape = RoundedCornerShape(
-                                    topStart = 16.dp,
-                                    bottomStart = 16.dp
-                                ),
-                                shadow = Shadow(
-                                    radius = 16.dp,
-                                    spread = 0.dp,
-                                    color = MaterialTheme.colorScheme.primary.copy(
-                                        alpha = 0.04f
-                                    ),
-                                    offset = DpOffset(0.dp, 4.dp)
-                                )
-                            )
                             .background(MaterialTheme.colorScheme.surface)
                     ) {
+                        item {
+                            Column {
+                                DetailImage(
+                                    imageUrl = imageUrl,
+                                    description = pizzaUi.name,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(240.dp)
+                                        .background(MaterialTheme.colorScheme.surface)
+                                        .clip(
+                                            RoundedCornerShape(bottomEnd = 16.dp)
+                                        )
+                                        .background(MaterialTheme.colorScheme.background)
+                                )
+                                DetailNameDescription(
+                                    name = pizzaUi.name,
+                                    description = pizzaUi.longDescription,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(MaterialTheme.colorScheme.background)
+                                        .clip(
+                                            RoundedCornerShape(topStart = 16.dp)
+                                        )
+                                        .background(MaterialTheme.colorScheme.surface)
+                                        .padding(16.dp)
+                                )
+                            }
+                        }
                         detailToppings(
                             extraToppings = extraToppings,
                             onAction = onAction
                         )
+
                     }
                     DetailCheckoutBar(
                         price = formatedPrice,
@@ -163,58 +233,6 @@ fun DetailScreen(
                         modifier = Modifier.align(Alignment.BottomCenter)
                     )
                 }
-            }
-        else {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-            ) {
-                LazyColumn(
-                    state = lazyListState,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surface)
-                ) {
-                    item {
-                        Column {
-                            DetailImage(
-                                imageUrl = imageUrl,
-                                description = pizzaUi.name,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(240.dp)
-                                    .background(MaterialTheme.colorScheme.surface)
-                                    .clip(
-                                        RoundedCornerShape(bottomEnd = 16.dp)
-                                    )
-                                    .background(MaterialTheme.colorScheme.background)
-                            )
-                            DetailNameDescription(
-                                name = pizzaUi.name,
-                                description = pizzaUi.longDescription,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.background)
-                                    .clip(
-                                        RoundedCornerShape(topStart = 16.dp)
-                                    )
-                                    .background(MaterialTheme.colorScheme.surface)
-                                    .padding(16.dp)
-                            )
-                        }
-                    }
-                    detailToppings(
-                        extraToppings = extraToppings,
-                        onAction = onAction
-                    )
-
-                }
-                DetailCheckoutBar(
-                    price = formatedPrice,
-                    onClick = { onAction(DetailAction.OnAddToCartClick) },
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                )
             }
         }
     }

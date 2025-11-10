@@ -5,6 +5,7 @@ package com.example.lazypizza.lazypizza.presentation.list
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -21,7 +23,10 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.layout.LazyLayoutCacheWindow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,7 +34,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -37,7 +44,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import com.example.lazypizza.R
+import com.example.lazypizza.app.navigation.NavigationRoute
+import com.example.lazypizza.app.navigation.component.LazyNavigationBar
+import com.example.lazypizza.app.navigation.component.LazyNavigationRail
 import com.example.lazypizza.core.presentation.theme.ExtraTypography
 import com.example.lazypizza.core.presentation.theme.LazyPizzaTheme
 import com.example.lazypizza.core.presentation.util.ObserveAsEvents
@@ -51,12 +62,17 @@ import com.example.lazypizza.lazypizza.presentation.components.PizzaItem
 import com.example.lazypizza.lazypizza.presentation.list.components.ListCategoryHeader
 import com.example.lazypizza.lazypizza.presentation.list.components.ListCategoryRow
 import com.example.lazypizza.lazypizza.presentation.list.components.ListSearchField
+import com.example.lazypizza.lazypizza.presentation.list.components.ListTopAppBar
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 
 fun ListScreenRoot(
+    useNavigationalRail: Boolean,
+    cartItemsCount: Int?,
+    navController: NavController,
+    topLevelRoutes: List<NavigationRoute>,
     windowWidthSizeClass: WindowWidthSizeClass,
     onNavigateToDetails: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -74,6 +90,10 @@ fun ListScreenRoot(
     }
 
     ListScreen(
+        useNavigationalRail = useNavigationalRail,
+        cartItemsCount = cartItemsCount,
+        navController = navController,
+        topLevelRoutes = topLevelRoutes,
         windowWidthSizeClass = windowWidthSizeClass,
         products = state.products,
         headersIndexes = state.headersIndices,
@@ -90,6 +110,10 @@ fun ListScreenRoot(
 
 @Composable
 fun ListScreen(
+    useNavigationalRail: Boolean,
+    cartItemsCount: Int?,
+    navController: NavController,
+    topLevelRoutes: List<NavigationRoute>,
     windowWidthSizeClass: WindowWidthSizeClass,
     products: Map<Category, List<Product>>,
     headersIndexes: Map<Category, Int>,
@@ -104,115 +128,148 @@ fun ListScreen(
     val dpCacheWindow = LazyLayoutCacheWindow(300.dp, 150.dp)
     val lazyGridState = rememberLazyGridState(cacheWindow = dpCacheWindow)
     val coroutineScope = rememberCoroutineScope()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
-    LazyVerticalGrid(
-        state = lazyGridState,
-        columns = GridCells.Fixed(columns),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = modifier
+    Scaffold(
+        topBar = {
+            ListTopAppBar(
+                scrollBehavior = scrollBehavior
+            )
+        },
+        bottomBar = {
+            LazyNavigationBar(
+                useNavigationalRail = useNavigationalRail,
+                cartItemsCount = cartItemsCount,
+                navController = navController,
+                topLevelRoutes = topLevelRoutes,
+            )
+        },
+        contentWindowInsets = WindowInsets.safeContent,
+        modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp)
-    ) {
-        item(
-            span = { GridItemSpan(columns) }
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+    ) { paddingValues ->
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
-            Image(
-                painter = painterResource(R.drawable.pizza),
-                contentDescription = stringResource(R.string.pizza_image),
-                contentScale = ContentScale.FillWidth,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .clip(RoundedCornerShape(8.dp))
+            LazyNavigationRail(
+                useNavigationalRail = useNavigationalRail,
+                cartItemsCount = cartItemsCount,
+                navController = navController,
+                topLevelRoutes = topLevelRoutes,
             )
-        }
+            LazyVerticalGrid(
+                state = lazyGridState,
+                columns = GridCells.Fixed(columns),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
+            ) {
+                item(
+                    span = { GridItemSpan(columns) }
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.pizza),
+                        contentDescription = stringResource(R.string.pizza_image),
+                        contentScale = ContentScale.FillWidth,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                    )
+                }
 
-        item(
-            span = { GridItemSpan(columns) }
-        ) {
-            ListSearchField(
-                value = search,
-                onValueChange = { onAction(ListAction.OnSearchChange(it)) },
-            )
-        }
+                item(
+                    span = { GridItemSpan(columns) }
+                ) {
+                    ListSearchField(
+                        value = search,
+                        onValueChange = { onAction(ListAction.OnSearchChange(it)) },
+                    )
+                }
 
-        item(
-            span = { GridItemSpan(columns) }
-        ) {
-            ListCategoryRow(
-                onAction = { listAction ->
-                    when (listAction) {
-                        is ListAction.OnCategoryClick ->
-                            headersIndexes[listAction.category]?.let { index ->
-                                coroutineScope.launch {
-                                    lazyGridState.animateScrollToItem(index)
-                                }
+                item(
+                    span = { GridItemSpan(columns) }
+                ) {
+                    ListCategoryRow(
+                        onAction = { listAction ->
+                            when (listAction) {
+                                is ListAction.OnCategoryClick ->
+                                    headersIndexes[listAction.category]?.let { index ->
+                                        coroutineScope.launch {
+                                            lazyGridState.animateScrollToItem(index)
+                                        }
+                                    }
+
+                                else -> {}
                             }
 
-                        else -> {}
-                    }
-
-                },
-                modifier = Modifier
-                    .padding(top = 12.dp)
-            )
-        }
-
-        if (products.isEmpty())
-            item(
-                span = { GridItemSpan(columns) }
-            ) {
-                Text(
-                    text = stringResource(R.string.no_results_found_for_your_query),
-                    style = ExtraTypography.bodyLargeMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp)
-                )
-            }
-        else
-            products.forEach { (category, products) ->
-                stickyHeader {
-                    ListCategoryHeader(category = category)
+                        },
+                        modifier = Modifier
+                            .padding(top = 12.dp)
+                    )
                 }
 
-                items(products, key = { it.name }) { product ->
-                    when (product) {
-                        is Product.Pizza ->
-                            PizzaItem(
-                                pizzaUi = product.toPizzaUi(),
-                                onClick = {
-                                    onAction(ListAction.NavigateToDetail(it))
-                                }
-                            )
-
-                        is Product.OtherProduct ->
-                            ProductItem(
-                                onDeleteClick = {
-                                    onAction(ListAction.OnDeleteClick(it))
-                                },
-                                onIncrementClick = {
-                                    onAction(ListAction.OnIncrementClick(it))
-                                },
-                                onDecrementClick = {
-                                    onAction(ListAction.OnDecrementClick(it))
-                                },
-                                productUi = product.toProductUi(),
-                            )
+                if (products.isEmpty())
+                    item(
+                        span = { GridItemSpan(columns) }
+                    ) {
+                        Text(
+                            text = stringResource(R.string.no_results_found_for_your_query),
+                            style = ExtraTypography.bodyLargeMedium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp)
+                        )
                     }
+                else
+                    products.forEach { (category, products) ->
+                        stickyHeader {
+                            ListCategoryHeader(category = category)
+                        }
+
+                        items(products, key = { it.name }) { product ->
+                            when (product) {
+                                is Product.Pizza ->
+                                    PizzaItem(
+                                        pizzaUi = product.toPizzaUi(),
+                                        onClick = {
+                                            onAction(ListAction.NavigateToDetail(it))
+                                        }
+                                    )
+
+                                is Product.OtherProduct ->
+                                    ProductItem(
+                                        onDeleteClick = {
+                                            onAction(ListAction.OnDeleteClick(it))
+                                        },
+                                        onIncrementClick = {
+                                            onAction(ListAction.OnIncrementClick(it))
+                                        },
+                                        onDecrementClick = {
+                                            onAction(ListAction.OnDecrementClick(it))
+                                        },
+                                        productUi = product.toProductUi(),
+                                    )
+                            }
+                        }
+                    }
+
+                item(
+                    span = { GridItemSpan(columns) }
+                ) {
+                    Spacer(
+                        modifier = Modifier.windowInsetsBottomHeight(
+                            WindowInsets.ime
+                        )
+                    )
                 }
             }
-
-        item(
-            span = { GridItemSpan(columns) }
-        ) {
-             Spacer(
-                modifier = Modifier.windowInsetsBottomHeight(
-                    WindowInsets.ime
-                )
-            )
         }
     }
 }
@@ -222,6 +279,10 @@ fun ListScreen(
 fun ListScreenPreview() {
     LazyPizzaTheme {
         ListScreen(
+            useNavigationalRail = false,
+            cartItemsCount = 0,
+            navController = NavController(LocalContext.current),
+            topLevelRoutes = emptyList(),
             products = localDataSource
                 .filter { it.category != Category.EXTRATOPPING }
                 .groupBy { it.category },

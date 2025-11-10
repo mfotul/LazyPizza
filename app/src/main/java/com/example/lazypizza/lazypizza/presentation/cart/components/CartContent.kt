@@ -54,6 +54,7 @@ fun CartContent(
             if (windowWidthSizeClass != WindowWidthSizeClass.Expanded)
                 item {
                     CartAddOns(
+                        windowWidthSizeClass = windowWidthSizeClass,
                         recommendedProducts = recommendedProducts,
                         onAction = onAction,
                         totalPrice = totalPrice
@@ -62,6 +63,7 @@ fun CartContent(
         }
         if (windowWidthSizeClass == WindowWidthSizeClass.Expanded) {
             CartAddOns(
+                windowWidthSizeClass = windowWidthSizeClass,
                 recommendedProducts = recommendedProducts,
                 onAction = onAction,
                 totalPrice = totalPrice,

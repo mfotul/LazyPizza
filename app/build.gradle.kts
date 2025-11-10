@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.appcheck.debug)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.auth)
 
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
